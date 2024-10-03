@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class UploadService implements IUploadService {
@@ -18,7 +19,12 @@ public class UploadService implements IUploadService {
     @Value("${azure.storage.container-name}")
     private String _containerName;
     @Override
-    public String UploadAsync(MultipartFile file) throws IOException {
+    public CompletableFuture<String> UploadAsync(MultipartFile file) throws IOException {
+        return CompletableFuture.supplyAsync(()->{
+            return UploadFuture(file);
+        });
+    }
+    public String UploadFuture(MultipartFile file){
         try{
             String fileName = file.getOriginalFilename();
             InputStream inputStream = file.getInputStream();

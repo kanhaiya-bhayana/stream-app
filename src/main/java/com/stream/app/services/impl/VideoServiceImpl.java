@@ -63,7 +63,7 @@ public class VideoServiceImpl implements IVideoService {
 //
 //            Files.copy(inputStream,path, StandardCopyOption.REPLACE_EXISTING);
 
-            String path = _uploadService.UploadAsync(file);
+            String path = _uploadService.UploadAsync(file).get();
             video.setContentType(contentType);
             video.setFilePath(path);
 

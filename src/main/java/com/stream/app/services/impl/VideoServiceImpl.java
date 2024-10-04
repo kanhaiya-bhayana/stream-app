@@ -2,6 +2,7 @@ package com.stream.app.services.impl;
 
 import com.stream.app.entities.Video;
 import com.stream.app.repositories.IVideoRepository;
+import com.stream.app.services.Interfaces.IUploadService;
 import com.stream.app.services.Interfaces.IVideoService;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -26,6 +27,9 @@ public class VideoServiceImpl implements IVideoService {
     @Autowired
     private IVideoRepository _videoRepository;
 
+    @Autowired
+    private IUploadService _uploadService;
+
     Logger _logger = LoggerFactory.getLogger(VideoServiceImpl.class);
 
     @PostConstruct
@@ -48,18 +52,20 @@ public class VideoServiceImpl implements IVideoService {
     public Video saveVideoAsync(Video video, MultipartFile file) {
         try{
             String contentType = file.getContentType();
+//
+//            InputStream inputStream = file.getInputStream();
+//
+//            String dir = cleanPath(DIR);
+//            String fileName = cleanPath(file.getOriginalFilename());
+//
+//            Path path = Paths.get(dir,fileName);
+//            _logger.info("Path: " + path);
+//
+//            Files.copy(inputStream,path, StandardCopyOption.REPLACE_EXISTING);
 
-            InputStream inputStream = file.getInputStream();
-
-            String dir = cleanPath(DIR);
-            String fileName = cleanPath(file.getOriginalFilename());
-
-            Path path = Paths.get(dir,fileName);
-            _logger.info("Path: " + path);
-
-            Files.copy(inputStream,path, StandardCopyOption.REPLACE_EXISTING);
+            String path = _uploadService.UploadAsync(file).get();
             video.setContentType(contentType);
-            video.setFilePath(path.toString());
+            video.setFilePath(path);
 
             return _videoRepository.save(video);
 

@@ -51,6 +51,7 @@ public class VideoServiceImpl implements IVideoService {
     @Override
     public Video saveVideoAsync(Video video, MultipartFile file) {
         try{
+            _logger.info("VideoServiceImpl.saveVideoAsync method called.");
             String contentType = file.getContentType();
 //
 //            InputStream inputStream = file.getInputStream();

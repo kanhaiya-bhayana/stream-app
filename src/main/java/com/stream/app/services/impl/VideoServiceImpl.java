@@ -1,6 +1,7 @@
 package com.stream.app.services.impl;
 
 import com.stream.app.entities.Video;
+import com.stream.app.exceptions.ResourceNotFoundException;
 import com.stream.app.repositories.IVideoRepository;
 import com.stream.app.services.Interfaces.IUploadService;
 import com.stream.app.services.Interfaces.IVideoService;
@@ -45,7 +46,8 @@ public class VideoServiceImpl implements IVideoService {
     String DIR;
     @Override
     public Video getVideoByIdAsync(String videoId) {
-        return null;
+        _logger.info("VideoServiceImpl.getVideoByIdAsync method called.");
+        return _videoRepository.findById(videoId).orElseThrow(() -> new ResourceNotFoundException("Video","VideoId",videoId));
     }
 
     @Override
@@ -84,7 +86,8 @@ public class VideoServiceImpl implements IVideoService {
 
     @Override
     public List<Video> getAllVideosAsync() {
-        return null;
+        _logger.info("VideoServiceImpl.getAllVideosAsync method called.");
+        return _videoRepository.findAll();
     }
 
     private String cleanPath(String path){

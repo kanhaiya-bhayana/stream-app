@@ -1,18 +1,22 @@
 package com.stream.app.controllers;
 
-import com.stream.app.dto.ApiResponse;
+import com.stream.app.dto.ResponseDto;
 import com.stream.app.entities.Video;
 import com.stream.app.services.Interfaces.IVideoService;
-import com.stream.app.utility.ResponseMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+
+import static com.stream.app.utility.VideoConstants.SUCCESS_MESSAGE;
 
 @RestController
 @RequestMapping("/api/v1/videos")
@@ -23,13 +27,9 @@ public class VideosController {
     public VideosController(IVideoService videoService){
         _videoService = videoService;
     }
-    @GetMapping
-    public ResponseEntity<Void> get(){
-        System.out.println("tatti");
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
+
     @PostMapping
-    public ResponseEntity<ApiResponse<Video>> create(
+    public ResponseEntity<ResponseDto> create(
             @RequestParam("file") MultipartFile file,
             @RequestParam("title") String title,
             @RequestParam("description") String description)
@@ -48,8 +48,48 @@ public class VideosController {
         video.setVideoId(UUID.randomUUID().toString());
 
         Video response = _videoService.saveVideoAsync(video, file);
-
-        return ResponseMapper.buildResponse(response);
+        if(response == null){
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(new ResponseDto(HttpStatus.CREATED.toString(),SUCCESS_MESSAGE));
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<String> stream(
+            @PathVariable String id
+    ){
+        _logger.info("VideosController.stream method called.");
+        if (id == null){
+            _logger.error("Error: 'id' parameter is null.");
+            return null;
+        }
+        Video response = _videoService.getVideoByIdAsync(id);
+        response.setContentType(response.getContentType() == null ? "application/octet-stream" : response.getContentType());
+//        Resource resource = new FileSystemResource(response.getFilePath());
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response.getFilePath());
+    }
+
+    @GetMapping
+    public ResponseEntity<List<String>> streamAll() {
+        _logger.info("VideosController.streamAll method called.");
+        List<Video> result = _videoService.getAllVideosAsync();
+        List<String> response = new ArrayList<>();
+
+        result.forEach(v -> {
+            v.setContentType(v.getContentType() == null ? "application/octet-stream" : v.getContentType());
+            response.add(v.getFilePath());
+        });
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
+
 
 }
